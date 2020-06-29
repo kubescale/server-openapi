@@ -21,7 +21,7 @@ paths:
             application/text:
               example: "9e5156a4c65121306dd2d8ed8f92cb8d738e2533011344b522c5d28409bc4970"
               schema:
-                $ref: '#/components/schemas/registerrequest'
+                $ref: '#/components/schemas/key'
   /machine/{publicKey}:
     post:
       summary: "Register a machine and it's Wireguard public key to the control plane."
@@ -36,7 +36,7 @@ paths:
           in: path
           required: true
       requestBody:
-        description: "encrypted machine key"
+        description: "encrypted registration request"
         required: true
         content:
           application/octet-stream:
@@ -49,9 +49,34 @@ paths:
             application/octet-stream:
               schema:
                 $ref: '#/components/schemas/registerresponse'
-     
-              
-    
+                
+  /machine/{publicKey}/map:
+    post:
+      summary: "Start a long-poll for network map updates."
+      description: |
+        Starts a long-poll for network map updates. The request contains the current host information and Wireguard endpoints.      
+      parameters: 
+        - name: publicKey
+          description: Hex encoded Wireguard public key of the machine
+          schema:
+            type: string
+            format: hex
+          in: path
+          required: true
+      requestBody:
+        description: "encrypted map poll request"
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              $ref: "#/components/schemas/maprequest"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/octet-stream:
+              schema:
+                $ref: '#/components/schemas/mapresponse'
 components:
   schemas:
     key:
@@ -106,3 +131,54 @@ components:
           type: boolean
         authURL:
           type: string
+    maprequest:
+      type: "string"
+      format: "binary"
+      description: |
+        [Box](https://golang.org/x/crypto/nacl/box) encrypted json request for the map polling endpoint. The MapRequest Go definition can be found [here]("https://github.com/tailscale/tailscale/blob/23e74a0f7a7538bdd849ac16d5a57fbc192a2613/tailcfg/tailcfg.go#L447").
+      properties:
+        version:
+          type: integer
+          format: int32
+        compress:
+          type: string
+        keepAlive:
+          type: boolean
+        nodeKey:
+          type: string
+        endpoints:
+          type: array
+        includeIpv6:
+          type: boolean
+        stream:
+          type: boolean
+        hostinfo:
+          type: object
+    mapresponse:
+      type: "string"
+      format: "binary"
+      description: |
+        [Box](https://golang.org/x/crypto/nacl/box) encrypted json request for the map polling endpoint. The MapRequest Go definition can be found [here]("https://github.com/tailscale/tailscale/blob/23e74a0f7a7538bdd849ac16d5a57fbc192a2613/tailcfg/tailcfg.go#L494").
+      properties:
+        keepAlive:
+          type: boolean
+        node:
+          type: object
+        peers:
+          type: array
+        dns:
+          type: array
+        searchPaths:
+          type: array
+        derpMap:
+          type: object
+        domain:
+          type: string
+        packetFilter:
+          type: array
+        userProfiles:
+          type: array
+        roles:
+          type: array
+        debug:
+          type: object
