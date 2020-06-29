@@ -1,6 +1,20 @@
 openapi: "3.0.0"
 info:
-  description: "The interface for the [Tailscale](https://github.com/tailscale/tailscale) and [Kubescale](https://github.com/kubescale) coordinator server."
+  description: | 
+    The interface for the [Tailscale](https://github.com/tailscale/tailscale) and [Kubescale](https://github.com/kubescale) coordinator server.
+    
+    ## Registration
+    Nodes register with the control plane with the /machine/{publicKey} endpoint, afterwards the user accepts this registration with the oauth link flow. Once accepted, the machine can fetch the network map with /machine/{publicKey}/map
+    
+    ## Secure communication
+    The Control Plane and machines (network peers) all have public keys that allow for encrypted communication. This is why most of the requests and responses in this specification are in binary format. This means that the json request is encrypted with the public key of the destination and signed with the public key of the origin.
+    
+    ## Terminology
+    
+    **Coordination server:** Currently the coordination server does not really have a name. In this document it is sometimes called "The Coordination Server", "The Control Plane" or simply "The Server". 
+    
+    **Machines:** Each client running [Tailscale](https://github.com/tailscale/tailscale) is called a Machine and is identified by its [Wireguard Public Key](https://www.wireguard.com/protocol/). 
+    
   version: "1.0.0"
   title: "Tailscale controlplane API"
   contact:
