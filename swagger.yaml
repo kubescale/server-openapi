@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  description: "The interface for the tailscale coordinator server."
+  description: "The interface for the Tailscale and Kubescale coordinator server."
   version: "1.0.0"
   title: "Tailscale controlplane API"
   contact:
@@ -11,10 +11,8 @@ servers:
 paths:
   /key:
     get:
-      tags:
-      - "key"
       summary: "Get the Wireguard Public Key of the server"
-      description: "The control plane is identified with a Wireguard public key. This method fetches the key, encoded as a hex string."
+      description: "Fetches the public key of the control plane. The control plane is identified with a Wireguard public key which the clients encrypt all their requests with."
       operationId: "getKey"
       responses:
         "200":
@@ -23,8 +21,88 @@ paths:
             application/text:
               example: "9e5156a4c65121306dd2d8ed8f92cb8d738e2533011344b522c5d28409bc4970"
               schema:
-                $ref: '#/components/schemas/key' 
+                $ref: '#/components/schemas/registerrequest'
+  /machine/{publicKey}:
+    post:
+      summary: "Register a machine and it's Wireguard public key to the control plane."
+      description: "The public key represents the machines Wireguard public key. The request body contains the json encoded registration request, encrypted using [box](golang.org/x/crypto/nacl/box)."
+      operationId: "postMachine"
+      parameters: 
+        - name: publicKey
+          description: Hex encoded Wireguard public key of the machine
+          schema:
+            type: string
+            format: hex
+          in: path
+          required: true
+      requestBody:
+        description: "encrypted machine key"
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              $ref: "#/components/schemas/registerrequest"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/octet-stream:
+              schema:
+                $ref: '#/components/schemas/registerresponse'
+     
+              
+    
 components:
   schemas:
     key:
       type: "string"
+      format: "hex"
+      description: |
+        Hex encoded Wireguard public key. For example:
+        "9e5156a4c65121306dd2d8ed8f92cb8d738e2533011344b522c5d28409bc4970"
+    registerrequest:
+      type: "string"
+      format: "binary"
+      description: |
+        [Box](https://golang.org/x/crypto/nacl/box) encrypted json request to register a node. The RegisterRequest Go definition can be found [here]("https://github.com/tailscale/tailscale/blob/23e74a0f7a7538bdd849ac16d5a57fbc192a2613/tailcfg/tailcfg.go#L399").
+      properties:
+        version:
+          type: integer
+        nodeKey:
+          type: string
+        OldNodeKey:
+          type: string
+        auth:
+          type: object
+          properties:
+            provider:
+              type: string
+            loginName:
+              type: string
+            oauth2Token:
+              type: string
+            authKey:
+              type: string
+        expiry:
+          type: string
+          format: time
+        followup:
+          type: string
+        hostinfo:
+          type: object
+    registerresponse:
+      type: "string"
+      format: "binary"
+      description: |
+        [Box](https://golang.org/x/crypto/nacl/box) encrypted json response after registering a node. The RegisterResponse Go definition can be found [here]("https://github.com/tailscale/tailscale/blob/23e74a0f7a7538bdd849ac16d5a57fbc192a2613/tailcfg/tailcfg.go#L432").
+      properties:
+        user:
+          type: object
+        login:
+          type: object
+        nodeKeyExpired:
+          type: boolean
+        machineAuthorized:
+          type: boolean
+        authURL:
+          type: string
