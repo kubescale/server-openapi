@@ -1,8 +1,5 @@
-# server-swagger
+# [server-openapi](https://kubescale.github.io/server-openapi/)
 Swagger specification of the [Kubescale](https://github.com/kubescale) and [Tailscale](https://github.com/tailscale/tailscale) server interface.
-
-[The Specification](https://kubescale.github.io/server-openapi/)
-
 
 ## Disclaimer
 This repository and Kubescale is currently being developed and maintained by TCorp BV, a for-profit company that is currently not associated with Tailscale.
