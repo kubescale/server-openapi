@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  description: "The interface for the Tailscale and Kubescale coordinator server."
+  description: "The interface for the [Tailscale](https://github.com/tailscale/tailscale) and [Kubescale](https://github.com/kubescale) coordinator server."
   version: "1.0.0"
   title: "Tailscale controlplane API"
   contact:
@@ -52,9 +52,10 @@ paths:
                 
   /machine/{publicKey}/map:
     post:
-      summary: "Start a long-poll for network map updates."
+      summary: "Poll for network map updates."
       description: |
-        Starts a long-poll for network map updates. The request contains the current host information and Wireguard endpoints.      
+        Polls for network map updates. The request contains the current host information and Wireguard endpoints.
+        The response contains the list of peers and other configurations.
       parameters: 
         - name: publicKey
           description: Hex encoded Wireguard public key of the machine
